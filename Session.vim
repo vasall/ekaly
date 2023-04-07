@@ -37,7 +37,7 @@ let s:so_save = &so | let s:siso_save = &siso | set so=0 siso=0
 let v:this_session=expand("<sfile>:p")
 silent only
 silent tabonly
-cd ~/projects/nayuta/lab
+cd ~/projects/nayuta/rigid_lab
 if expand('%') == '' && !&modified && line('$') <= 1 && getline(1) == ''
   let s:wipebuf = bufnr('%')
 endif
@@ -64,55 +64,13 @@ imap <buffer> <silent> <F9> :call C_Link():call C_HlMessage()
 imap <buffer> <silent> <M-F9> :call C_Compile():call C_HlMessage()
 nmap <buffer> <silent> <NL> i=C_JumpCtrlJ()
 vnoremap <buffer> /* s/*  */<Left><Left><Left>p
-nnoremap <buffer> <silent> \cl :call C_EndOfLineComment()
-nnoremap <buffer> <silent> \c* :call C_CodeToCommentC():nohlsearchj
-nnoremap <buffer> <silent> \cc :call C_CodeToCommentCpp():nohlsearchj
-nnoremap <buffer> <silent> \co :call C_CommentToCode():nohlsearch
-nnoremap <buffer> <silent> \cd :call C_InsertDateAndTime('d')
-nnoremap <buffer> <silent> \ct :call C_InsertDateAndTime('dt')
-nnoremap <buffer> <silent> \cx :call C_CommentToggle( )
-nnoremap <buffer> <silent> \sd :call C_InsertTemplate("statements.do-while")
-nnoremap <buffer> <silent> \sfo :call C_InsertTemplate("statements.for-block")
-nnoremap <buffer> <silent> \sif :call C_InsertTemplate("statements.if-block")
-nnoremap <buffer> <silent> \sie :call C_InsertTemplate("statements.if-else")
-nnoremap <buffer> <silent> \sife :call C_InsertTemplate("statements.if-block-else")
-nnoremap <buffer> <silent> \se :call C_InsertTemplate("statements.else-block")
-nnoremap <buffer> <silent> \swh :call C_InsertTemplate("statements.while-block")
-nnoremap <buffer> <silent> \ss :call C_InsertTemplate("statements.switch")
-nnoremap <buffer> <silent> \s{ :call C_InsertTemplate("statements.block")
-nnoremap <buffer> <silent> \sb :call C_InsertTemplate("statements.block")
-nnoremap <buffer> <silent> \pif :call C_InsertTemplate("preprocessor.if-endif")
-nnoremap <buffer> <silent> \pie :call C_InsertTemplate("preprocessor.if-else-endif")
-nnoremap <buffer> <silent> \pid :call C_InsertTemplate("preprocessor.ifdef-else-endif")
-nnoremap <buffer> <silent> \pin :call C_InsertTemplate("preprocessor.ifndef-else-endif")
-nnoremap <buffer> <silent> \pind :call C_InsertTemplate("preprocessor.ifndef-def-endif")
-nnoremap <buffer> <silent> \pi0 :call C_PPIf0("a")2ji
-nnoremap <buffer> <silent> \if :call C_InsertTemplate("idioms.function")
-nnoremap <buffer> <silent> \isf :call C_InsertTemplate("idioms.function-static")
-nnoremap <buffer> <silent> \im :call C_InsertTemplate("idioms.main")
-nnoremap <buffer> <silent> \i0 :call C_CodeFor("up"  )
-nnoremap <buffer> <silent> \in :call C_CodeFor("down")
-nnoremap <buffer> <silent> \ie :call C_InsertTemplate("idioms.enum")
-nnoremap <buffer> <silent> \is :call C_InsertTemplate("idioms.struct")
-nnoremap <buffer> <silent> \iu :call C_InsertTemplate("idioms.union")
-nnoremap <buffer> <silent> \isi :call C_InsertTemplate("idioms.sizeof")
-nnoremap <buffer> <silent> \ias :call C_InsertTemplate("idioms.assert")
-nnoremap <buffer> <silent> \ii :call C_InsertTemplate("idioms.open-input-file")
-nnoremap <buffer> <silent> \io :call C_InsertTemplate("idioms.open-output-file")
-nnoremap <buffer> <silent> \nw :call C_CodeSnippet("w")
-nnoremap <buffer> <silent> \np :call C_ProtoPick("function")
-nnoremap <buffer> <silent> \nf :call C_ProtoPick("function")
-nnoremap <buffer> <silent> \nm :call C_ProtoPick("method")
-nnoremap <buffer> <silent> \+tr :call C_InsertTemplate("cpp.try-catch")
-nnoremap <buffer> <silent> \+ca :call C_InsertTemplate("cpp.catch")
-nnoremap <buffer> <silent> \+c. :call C_InsertTemplate("cpp.catch-points")
-nmap <buffer> <silent> \rh :call C_Hardcopy()
 map <buffer> <silent> \hm :call C_Help("m")
 map <buffer> <silent> \hp :call C_HelpCsupport()
 map <buffer> <silent> \ro :call C_Toggle_Gvim_Xterm()
 map <buffer> <silent> \rx :call C_XtermSize()
 vmap <buffer> <silent> \rh :call C_Hardcopy()
 map <buffer> <silent> \rs :call C_Settings()
+nmap <buffer> <silent> \rh :call C_Hardcopy()
 omap <buffer> <silent> \rh :call C_Hardcopy()
 map <buffer> <silent> \rd :call C_Indent()
 map <buffer> <silent> \rpa :call C_SplintArguments()
@@ -127,10 +85,13 @@ map <buffer> <silent> \rr :call C_Run()
 map <buffer> <silent> \rl :call C_Link():call C_HlMessage()
 map <buffer> <silent> \rc :call C_Compile():call C_HlMessage()
 vnoremap <buffer> <silent> \+c. :call C_InsertTemplate("cpp.catch-points", "v")
+nnoremap <buffer> <silent> \+c. :call C_InsertTemplate("cpp.catch-points")
 onoremap <buffer> <silent> \+c. :call C_InsertTemplate("cpp.catch-points")
 vnoremap <buffer> <silent> \+ca :call C_InsertTemplate("cpp.catch", "v")
+nnoremap <buffer> <silent> \+ca :call C_InsertTemplate("cpp.catch")
 onoremap <buffer> <silent> \+ca :call C_InsertTemplate("cpp.catch")
 vnoremap <buffer> <silent> \+tr :call C_InsertTemplate("cpp.try-catch", "v")
+nnoremap <buffer> <silent> \+tr :call C_InsertTemplate("cpp.try-catch")
 onoremap <buffer> <silent> \+tr :call C_InsertTemplate("cpp.try-catch")
 noremap <buffer> <silent> \+ec :call C_InsertTemplate("cpp.error-class")
 noremap <buffer> <silent> \+tf :call C_InsertTemplate("cpp.template-function")
@@ -155,24 +116,32 @@ noremap <buffer> <silent> \ns :call C_ProtoShow()
 noremap <buffer> <silent> \nc :call C_ProtoClear()
 noremap <buffer> <silent> \ni :call C_ProtoInsert()
 vnoremap <buffer> <silent> \nm :call C_ProtoPick("method")
+nnoremap <buffer> <silent> \nm :call C_ProtoPick("method")
 onoremap <buffer> <silent> \nm :call C_ProtoPick("method")
 vnoremap <buffer> <silent> \nf :call C_ProtoPick("function")
+nnoremap <buffer> <silent> \nf :call C_ProtoPick("function")
 onoremap <buffer> <silent> \nf :call C_ProtoPick("function")
 vnoremap <buffer> <silent> \np :call C_ProtoPick("function")
+nnoremap <buffer> <silent> \np :call C_ProtoPick("function")
 onoremap <buffer> <silent> \np :call C_ProtoPick("function")
 noremap <buffer> <silent> \ne :call C_CodeSnippet("e")
 vnoremap <buffer> <silent> \nw :call C_CodeSnippet("wv")
+nnoremap <buffer> <silent> \nw :call C_CodeSnippet("w")
 onoremap <buffer> <silent> \nw :call C_CodeSnippet("w")
 noremap <buffer> <silent> \nr :call C_CodeSnippet("r")
 noremap <buffer> <silent> \ifp :call C_InsertTemplate("idioms.fprintf")
 noremap <buffer> <silent> \ifs :call C_InsertTemplate("idioms.fscanf")
 vnoremap <buffer> <silent> \io :call C_InsertTemplate("idioms.open-output-file", "v")
+nnoremap <buffer> <silent> \io :call C_InsertTemplate("idioms.open-output-file")
 onoremap <buffer> <silent> \io :call C_InsertTemplate("idioms.open-output-file")
 vnoremap <buffer> <silent> \ii :call C_InsertTemplate("idioms.open-input-file", "v")
+nnoremap <buffer> <silent> \ii :call C_InsertTemplate("idioms.open-input-file")
 onoremap <buffer> <silent> \ii :call C_InsertTemplate("idioms.open-input-file")
 vnoremap <buffer> <silent> \ias :call C_InsertTemplate("idioms.assert", "v")
+nnoremap <buffer> <silent> \ias :call C_InsertTemplate("idioms.assert")
 onoremap <buffer> <silent> \ias :call C_InsertTemplate("idioms.assert")
 vnoremap <buffer> <silent> \isi :call C_InsertTemplate("idioms.sizeof", "v")
+nnoremap <buffer> <silent> \isi :call C_InsertTemplate("idioms.sizeof")
 onoremap <buffer> <silent> \isi :call C_InsertTemplate("idioms.sizeof")
 noremap <buffer> <silent> \ire :call C_InsertTemplate("idioms.realloc")
 noremap <buffer> <silent> \ima :call C_InsertTemplate("idioms.malloc")
@@ -180,36 +149,50 @@ noremap <buffer> <silent> \ica :call C_InsertTemplate("idioms.calloc")
 noremap <buffer> <silent> \isc :call C_InsertTemplate("idioms.scanf")
 noremap <buffer> <silent> \ip :call C_InsertTemplate("idioms.printf")
 vnoremap <buffer> <silent> \iu :call C_InsertTemplate("idioms.union" , "v")
+nnoremap <buffer> <silent> \iu :call C_InsertTemplate("idioms.union")
 onoremap <buffer> <silent> \iu :call C_InsertTemplate("idioms.union")
 vnoremap <buffer> <silent> \is :call C_InsertTemplate("idioms.struct", "v")
+nnoremap <buffer> <silent> \is :call C_InsertTemplate("idioms.struct")
 onoremap <buffer> <silent> \is :call C_InsertTemplate("idioms.struct")
 vnoremap <buffer> <silent> \ie :call C_InsertTemplate("idioms.enum"  , "v")
+nnoremap <buffer> <silent> \ie :call C_InsertTemplate("idioms.enum")
 onoremap <buffer> <silent> \ie :call C_InsertTemplate("idioms.enum")
 vnoremap <buffer> <silent> \in :call C_CodeFor("down")
+nnoremap <buffer> <silent> \in :call C_CodeFor("down")
 onoremap <buffer> <silent> \in :call C_CodeFor("down")
 vnoremap <buffer> <silent> \i0 :call C_CodeFor("up"  )
+nnoremap <buffer> <silent> \i0 :call C_CodeFor("up"  )
 onoremap <buffer> <silent> \i0 :call C_CodeFor("up"  )
 vnoremap <buffer> <silent> \im :call C_InsertTemplate("idioms.main", "v")
+nnoremap <buffer> <silent> \im :call C_InsertTemplate("idioms.main")
 onoremap <buffer> <silent> \im :call C_InsertTemplate("idioms.main")
 vnoremap <buffer> <silent> \isf :call C_InsertTemplate("idioms.function-static", "v")
+nnoremap <buffer> <silent> \isf :call C_InsertTemplate("idioms.function-static")
 onoremap <buffer> <silent> \isf :call C_InsertTemplate("idioms.function-static")
 vnoremap <buffer> <silent> \if :call C_InsertTemplate("idioms.function", "v")
+nnoremap <buffer> <silent> \if :call C_InsertTemplate("idioms.function")
 onoremap <buffer> <silent> \if :call C_InsertTemplate("idioms.function")
 noremap <buffer> <silent> \pp :call C_InsertTemplate("preprocessor.pragma")
 noremap <buffer> <silent> \pl :call C_InsertTemplate("preprocessor.line")
 noremap <buffer> <silent> \pe :call C_InsertTemplate("preprocessor.error")
 noremap <buffer> <silent> \pr0 :call C_PPIf0Remove()
 vnoremap <buffer> <silent> \pi0 :call C_PPIf0("v")
+nnoremap <buffer> <silent> \pi0 :call C_PPIf0("a")2ji
 onoremap <buffer> <silent> \pi0 :call C_PPIf0("a")2ji
 vnoremap <buffer> <silent> \pind :call C_InsertTemplate("preprocessor.ifndef-def-endif", "v")
 vnoremap <buffer> <silent> \pin :call C_InsertTemplate("preprocessor.ifndef-else-endif", "v")
 vnoremap <buffer> <silent> \pid :call C_InsertTemplate("preprocessor.ifdef-else-endif", "v")
 vnoremap <buffer> <silent> \pie :call C_InsertTemplate("preprocessor.if-else-endif", "v")
 vnoremap <buffer> <silent> \pif :call C_InsertTemplate("preprocessor.if-endif", "v")
+nnoremap <buffer> <silent> \pind :call C_InsertTemplate("preprocessor.ifndef-def-endif")
 onoremap <buffer> <silent> \pind :call C_InsertTemplate("preprocessor.ifndef-def-endif")
+nnoremap <buffer> <silent> \pin :call C_InsertTemplate("preprocessor.ifndef-else-endif")
 onoremap <buffer> <silent> \pin :call C_InsertTemplate("preprocessor.ifndef-else-endif")
+nnoremap <buffer> <silent> \pid :call C_InsertTemplate("preprocessor.ifdef-else-endif")
 onoremap <buffer> <silent> \pid :call C_InsertTemplate("preprocessor.ifdef-else-endif")
+nnoremap <buffer> <silent> \pie :call C_InsertTemplate("preprocessor.if-else-endif")
 onoremap <buffer> <silent> \pie :call C_InsertTemplate("preprocessor.if-else-endif")
+nnoremap <buffer> <silent> \pif :call C_InsertTemplate("preprocessor.if-endif")
 onoremap <buffer> <silent> \pif :call C_InsertTemplate("preprocessor.if-endif")
 noremap <buffer> <silent> \pu :call C_InsertTemplate("preprocessor.undefine")
 noremap <buffer> <silent> \pd :call C_InsertTemplate("preprocessor.define")
@@ -220,38 +203,51 @@ noremap <buffer> \+ps :IncludeCppLibrary
 noremap <buffer> \pc :IncludeC99Library 
 noremap <buffer> \ps :IncludeStdLibrary 
 vnoremap <buffer> <silent> \sb :call C_InsertTemplate("statements.block", "v")
+nnoremap <buffer> <silent> \sb :call C_InsertTemplate("statements.block")
 onoremap <buffer> <silent> \sb :call C_InsertTemplate("statements.block")
 vnoremap <buffer> <silent> \s{ :call C_InsertTemplate("statements.block", "v")
+nnoremap <buffer> <silent> \s{ :call C_InsertTemplate("statements.block")
 onoremap <buffer> <silent> \s{ :call C_InsertTemplate("statements.block")
 noremap <buffer> <silent> \sc :call C_InsertTemplate("statements.case")
 vnoremap <buffer> <silent> \ss :call C_InsertTemplate("statements.switch", "v")
+nnoremap <buffer> <silent> \ss :call C_InsertTemplate("statements.switch")
 onoremap <buffer> <silent> \ss :call C_InsertTemplate("statements.switch")
 vnoremap <buffer> <silent> \swh :call C_InsertTemplate("statements.while-block", "v")
+nnoremap <buffer> <silent> \swh :call C_InsertTemplate("statements.while-block")
 onoremap <buffer> <silent> \swh :call C_InsertTemplate("statements.while-block")
 noremap <buffer> <silent> \sw :call C_InsertTemplate("statements.while")
 vnoremap <buffer> <silent> \se :call C_InsertTemplate("statements.else-block", "v")
+nnoremap <buffer> <silent> \se :call C_InsertTemplate("statements.else-block")
 onoremap <buffer> <silent> \se :call C_InsertTemplate("statements.else-block")
 vnoremap <buffer> <silent> \sife :call C_InsertTemplate("statements.if-block-else", "v")
+nnoremap <buffer> <silent> \sife :call C_InsertTemplate("statements.if-block-else")
 onoremap <buffer> <silent> \sife :call C_InsertTemplate("statements.if-block-else")
 vnoremap <buffer> <silent> \sie :call C_InsertTemplate("statements.if-else", "v")
+nnoremap <buffer> <silent> \sie :call C_InsertTemplate("statements.if-else")
 onoremap <buffer> <silent> \sie :call C_InsertTemplate("statements.if-else")
 vnoremap <buffer> <silent> \sif :call C_InsertTemplate("statements.if-block", "v")
+nnoremap <buffer> <silent> \sif :call C_InsertTemplate("statements.if-block")
 onoremap <buffer> <silent> \sif :call C_InsertTemplate("statements.if-block")
 noremap <buffer> <silent> \si :call C_InsertTemplate("statements.if")
 vnoremap <buffer> <silent> \sfo :call C_InsertTemplate("statements.for-block", "v")
+nnoremap <buffer> <silent> \sfo :call C_InsertTemplate("statements.for-block")
 onoremap <buffer> <silent> \sfo :call C_InsertTemplate("statements.for-block")
 noremap <buffer> <silent> \sf :call C_InsertTemplate("statements.for")
 vnoremap <buffer> <silent> \sd :call C_InsertTemplate("statements.do-while", "v")
+nnoremap <buffer> <silent> \sd :call C_InsertTemplate("statements.do-while")
 onoremap <buffer> <silent> \sd :call C_InsertTemplate("statements.do-while")
 noremap <buffer> \csc :SpecialComment 
 noremap <buffer> \ckc :KeywordComment 
 noremap <buffer> \chs :HFileSection 
 noremap <buffer> \ccs :CFileSection 
 vnoremap <buffer> <silent> \cx :call C_CommentToggle( )
+nnoremap <buffer> <silent> \cx :call C_CommentToggle( )
 onoremap <buffer> <silent> \cx :call C_CommentToggle( )
 vnoremap <buffer> <silent> \ct s:call C_InsertDateAndTime('dt')a
+nnoremap <buffer> <silent> \ct :call C_InsertDateAndTime('dt')
 onoremap <buffer> <silent> \ct :call C_InsertDateAndTime('dt')
 vnoremap <buffer> <silent> \cd s:call C_InsertDateAndTime('d')a
+nnoremap <buffer> <silent> \cd :call C_InsertDateAndTime('d')
 onoremap <buffer> <silent> \cd :call C_InsertDateAndTime('d')
 noremap <buffer> <silent> \cfdh :call C_InsertTemplate("comment.file-description-header")
 noremap <buffer> <silent> \cfdi :call C_InsertTemplate("comment.file-description")
@@ -260,15 +256,19 @@ noremap <buffer> <silent> \cme :call C_InsertTemplate("comment.method")
 noremap <buffer> <silent> \cfu :call C_InsertTemplate("comment.function")
 noremap <buffer> <silent> \cfr :call C_InsertTemplate("comment.frame")
 vnoremap <buffer> <silent> \co :call C_CommentToCode():nohlsearch
+nnoremap <buffer> <silent> \co :call C_CommentToCode():nohlsearch
 onoremap <buffer> <silent> \co :call C_CommentToCode():nohlsearch
 vnoremap <buffer> <silent> \cc :call C_CodeToCommentCpp():nohlsearchj
+nnoremap <buffer> <silent> \cc :call C_CodeToCommentCpp():nohlsearchj
 onoremap <buffer> <silent> \cc :call C_CodeToCommentCpp():nohlsearchj
 vnoremap <buffer> <silent> \c* :call C_CodeToCommentC():nohlsearchj
+nnoremap <buffer> <silent> \c* :call C_CodeToCommentC():nohlsearchj
 onoremap <buffer> <silent> \c* :call C_CodeToCommentC():nohlsearchj
 noremap <buffer> <silent> \cs :call C_GetLineEndCommCol()
 vnoremap <buffer> <silent> \cj :call C_AdjustLineEndComm()
 nnoremap <buffer> <silent> \cj :call C_AdjustLineEndComm()
 vnoremap <buffer> <silent> \cl :call C_EndOfLineComment()
+nnoremap <buffer> <silent> \cl :call C_EndOfLineComment()
 onoremap <buffer> <silent> \cl :call C_EndOfLineComment()
 vnoremap <buffer> { S{}Pk=iB
 nmap <buffer> <silent> <C-J> i=C_JumpCtrlJ()
@@ -519,12 +519,12 @@ setlocal nowinfixheight
 setlocal nowinfixwidth
 setlocal wrap
 setlocal wrapmargin=0
-let s:l = 7 - ((6 * winheight(0) + 27) / 55)
+let s:l = 1 - ((0 * winheight(0) + 27) / 55)
 if s:l < 1 | let s:l = 1 | endif
 exe s:l
 normal! zt
-7
-normal! 016|
+1
+normal! 0
 tabnext 1
 badd +0 src/main.c
 if exists('s:wipebuf') && len(win_findbuf(s:wipebuf)) == 0

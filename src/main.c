@@ -5,6 +5,7 @@
 
 #include "lib/freihand/inc/freihand.h"
 
+
 int main(void) {
 	struct fh_event evt;
 	s32 wd;
