@@ -1,4 +1,4 @@
-#version 460
+#version 420
 
 layout(location=0) in vec2 uv;
 layout(location=1) in vec3 nrm;
@@ -20,4 +20,4 @@ void main()
 {
 	vec3 dark = calculateLighting();
 	FragColor = vec4(texture(tex, uv).rgb * dark, 1.0);
-} 
+}

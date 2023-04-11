@@ -20,4 +20,4 @@ void main()
 {
 	vec3 dark = calculateLighting();
 	FragColor = vec4(texture(tex, uv).rgb * dark, 1.0);
-} 
+}
