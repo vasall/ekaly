@@ -8,11 +8,38 @@
 #include "lib/mate/inc/mate.h"
 
 
+struct uniform_buffer {
+	mat4_t pos;
+	mat4_t rot;
+	mat4_t view;
+	mat4_t proj;
+};
 
-struct fh_model *mdl;
+struct camera_compact {
+	mat4_t view;
+	mat4_t proj;
+};
 
 
-void load_model(void)
+
+struct stuff {
+	struct fh_window *window;
+	struct fh_shader *shader;
+	struct fh_texture *texture;
+	struct fh_camera *cam;
+
+
+	struct uniform_buffer unibuf;
+	struct camera_compact camcom; 
+
+	vec3_t rot;
+	float x;
+
+	struct fh_model *mdl;
+	struct fh_model *ui;
+};
+
+void load_model(struct fh_window *win, struct stuff *s)
 {
 	FILE *fd;
 	struct amo_model *data;
@@ -51,16 +78,16 @@ void load_model(void)
 
 
 	fh_mdlc_shader(c, "model");
-	fh_mdlc_texture(c, "red");
+	fh_mdlc_texture(c, "brick");
 
 	fh_mdlc_attrib(c, "vtxPos", 3, GL_FLOAT, vtx);
 	fh_mdlc_attrib(c, "vtxTex", 2, GL_FLOAT, tex);
 	fh_mdlc_attrib(c, "vtxNrm", 3, GL_FLOAT, nrm);
 
-	fh_mdlc_uniform(c, "camera", sizeof(struct cam_p));
+	fh_mdlc_uniform(c, "camera", sizeof(struct uniform_buffer));
 
 
-	if(!(mdl = fh_mdlc_finish(c))) {
+	if(!(s->mdl = fh_mdl_create(win, c))) {
 		printf("Failed to finalize construction\n");
 		goto err_free_buffers;
 	}
@@ -86,19 +113,28 @@ err_return:
 }
 
 
-void load_ui(void)
+void load_ui(struct fh_window *win, struct stuff *s)
 {
 	struct fh_model_c *c;
 
 	unsigned int vtxnum = 4;
 	unsigned int idxnum = 6;
 
+#if 0
 	float vertices[] = {
 		-1,  0,  -1,
 		-1,  0,   1,
 		 1,  0,   1,
 		 1,  0,  -1
 	};
+#else
+	float vertices[] = {
+		-1,  -1,   0,
+		-1,   1,   0,
+		 1,   1,   0,
+		 1,  -1,   0
+	};
+#endif
 
 	/* Texture coordinates (2 floats per vertex) */
 	float texCoords[] = {
@@ -120,82 +156,148 @@ void load_ui(void)
 	}
 
 	fh_mdlc_shader(c, "ui");
-	fh_mdlc_texture(c, "red");
+	fh_mdlc_texture(c, "unt");
 
 	fh_mdlc_attrib(c, "vtxPos", 3, GL_FLOAT, vertices);
 	fh_mdlc_attrib(c, "vtxTex", 2, GL_FLOAT, texCoords);
 
-	if(!(mdl = fh_mdlc_finish(c))) {
+	fh_mdlc_uniform(c, "camera", sizeof(struct camera_compact));
+
+	if(!(s->ui = fh_mdl_create(win, c))) {
 		printf("Failed to finalize construction\n");
 		return;
 	}
 }
 
 
+
+void init_stuff(struct stuff *s, struct fh_window *parent, char *name, u32 w, u32 h)
+{
+
+	struct fh_camera_info cam_info;
+
+	mat4_idt(s->unibuf.pos);
+	mat4_idt(s->unibuf.rot);
+	mat4_idt(s->unibuf.view);
+	mat4_idt(s->unibuf.proj);
+
+	mat4_idt(s->camcom.view);
+	mat4_idt(s->camcom.proj);
+
+	vec3_clr(s->rot);
+
+
+	s->window = fh_add_window(parent, name, w, h);
+
+	/* Create the UI shader */
+	fh_load_shader(s->window, "ui", "./res/shaders/ui.vert", "./res/shaders/ui.frag");
+	fh_load_shader(s->window, "model", "./res/shaders/model.vert", "./res/shaders/model.frag");
+	fh_load_texture(s->window, "red", "./res/images/red.png");
+	fh_load_texture(s->window, "brick", "./res/images/brick.png");
+	fh_load_texture(s->window, "unt", "./res/images/Untitled.png");
+
+
+	load_ui(s->window, s);
+	load_model(s->window, s);
+
+	/* Create a camera */
+	cam_info.area_of_view = 60;
+	cam_info.aspect_ratio = 800.0f / 600.0f;
+	cam_info.near = 0.0001;
+	cam_info.far = 1000;
+	s->cam = fh_create_camera(s->window, "main", cam_info);
+}
+
+
+
+
+
 int main(void) {
 	struct fh_event evt;
-	s32 wd;
 	struct fh_element *ele;
-	struct fh_window *win;	
-
-	struct fh_shader *shader;
-	struct fh_texture *texture;
 
 
-	float x = 0;
-
+	struct stuff one;
+	struct stuff two;
 
 
 	srand(time(NULL));
 
 	if(fh_init() < 0)
 		goto err_return;
+	
 
-	fh_sdl_print_info();
-
-	if((wd = fh_add_window(0, "Hauptfenster", 800, 600)) < 0) {
-		printf("Failed to create window");
-		goto err_cleanup;
-	}
-
-	win = fh_win_get(wd);
-
-	fh_gl_print_info();
-
-	/* Create the UI shader */
-	if(fh_load_shader("ui", "./res/shaders/ui.vert", "./res/shaders/ui.frag") < 0) {
-		printf("Failed to load shader\n");
-	}
-
-	fh_load_shader("model", "./res/shaders/model.vert", "./res/shaders/model.frag");
-	texture = fh_tex_load("red", "./res/images/red.png");
-	fh_tex_insert(texture);
-
-	load_model();
-
-
-	fh_set_ui_shader("ui");
-
-	win = fh_win_get(wd);
-	fh_add(wd, fh_get(wd, "body"), "Test1", 0);
-
-	win->document->renderer->shader = fh_shd_get("ui");
-
-	fh_shd_show_attrib(fh_shd_get("ui"));
-
-	fh_doc_tree(win->document);
-
+	init_stuff(&one, NULL, "Hauptfenster", 800, 600);
+	init_stuff(&two, one.window, "Unterfenster", 400, 300);
 
 
 	while(fh_update()) {	
 		while(fh_pull_event(&evt)) {
 		}
 
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		fh_mdl_render(mdl);
 
-		SDL_GL_SwapWindow(win->handle);
+
+		/* ==================================================== */
+
+		one.x -= 0.01;
+		one.rot[0] += M_PI / 200;
+		one.rot[1] += M_PI / 100;
+		one.rot[2] += M_PI / 50;
+
+		fh_activate_window(one.window);
+		fh_clear_window(one.window);
+
+
+		one.cam->pos[1] = one.x;
+
+		fh_cam_update_proj(one.cam);
+		fh_cam_update_view(one.cam);
+
+		mat4_rfagl(one.unibuf.rot, one.rot);
+
+		
+		fh_cam_get_proj(one.cam, one.unibuf.proj);
+		fh_cam_get_view(one.cam, one.unibuf.view);
+
+		fh_mdl_set_uniform(one.ui, "camera", &one.camcom);
+		fh_mdl_set_uniform(one.mdl, "camera", &one.unibuf);
+
+		fh_mdl_render(one.mdl);
+		fh_mdl_render(one.ui);
+
+		fh_redraw_window(one.window);
+	
+		/* ==================================================== */	
+
+		two.x -= 0.01;
+		two.rot[0] -= M_PI / 200;
+		two.rot[1] -= M_PI / 100;
+		two.rot[2] -= M_PI / 50;
+
+		fh_activate_window(two.window);
+		fh_clear_window(two.window);
+
+		two.cam->pos[1] = two.x;
+
+		fh_cam_update_proj(two.cam);
+		fh_cam_update_view(two.cam);
+
+		mat4_rfagl(two.unibuf.rot, two.rot);
+
+		
+		fh_cam_get_proj(two.cam, two.unibuf.proj);
+		fh_cam_get_view(two.cam, two.unibuf.view);
+
+		fh_mdl_set_uniform(two.ui, "camera", &two.camcom);
+		fh_mdl_set_uniform(two.mdl, "camera", &two.unibuf);
+
+		fh_mdl_render(two.mdl);
+		fh_mdl_render(two.ui);
+
+		fh_redraw_window(two.window);
+
+		/* ==================================================== */
 	}
 
 err_cleanup:
