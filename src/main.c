@@ -37,6 +37,8 @@ struct stuff {
 
 	struct fh_model *mdl;
 	struct fh_model *ui;
+
+	struct fh_flat *flat;
 };
 
 void load_model(struct fh_window *win, struct stuff *s)
@@ -71,7 +73,9 @@ void load_model(struct fh_window *win, struct stuff *s)
 			NULL, NULL, &idxnum, &idx);
 
 
-	if(!(c = fh_mdlc_begin("test", vtxnum, idxnum, idx))) {
+	printf("model!\n");
+
+	if(!(c = fh_mdlc_begin("model", vtxnum, idxnum, idx))) {
 		printf("Failed to begin construction\n");
 		goto err_free_buffers;
 	}
@@ -80,9 +84,9 @@ void load_model(struct fh_window *win, struct stuff *s)
 	fh_mdlc_shader(c, "model");
 	fh_mdlc_texture(c, "brick");
 
-	fh_mdlc_attrib(c, "vtxPos", 3, GL_FLOAT, vtx);
-	fh_mdlc_attrib(c, "vtxTex", 2, GL_FLOAT, tex);
-	fh_mdlc_attrib(c, "vtxNrm", 3, GL_FLOAT, nrm);
+	fh_mdlc_attrib(c, "v_pos", 3, GL_FLOAT, vtx);
+	fh_mdlc_attrib(c, "v_uv", 2, GL_FLOAT, tex);
+	fh_mdlc_attrib(c, "v_nrm", 3, GL_FLOAT, nrm);
 
 	fh_mdlc_uniform(c, "camera", sizeof(struct uniform_buffer));
 
@@ -150,7 +154,9 @@ void load_ui(struct fh_window *win, struct stuff *s)
 		0, 2, 3
 	};
 
-	if(!(c = fh_mdlc_begin("test", vtxnum, idxnum, indices))) {
+	printf("ui!\n");
+
+	if(!(c = fh_mdlc_begin("ui", vtxnum, idxnum, indices))) {
 		printf("Failed to begin construction\n");
 		return;
 	}
@@ -158,10 +164,8 @@ void load_ui(struct fh_window *win, struct stuff *s)
 	fh_mdlc_shader(c, "ui");
 	fh_mdlc_texture(c, "unt");
 
-	fh_mdlc_attrib(c, "vtxPos", 3, GL_FLOAT, vertices);
-	fh_mdlc_attrib(c, "vtxTex", 2, GL_FLOAT, texCoords);
-
-	fh_mdlc_uniform(c, "camera", sizeof(struct camera_compact));
+	fh_mdlc_attrib(c, "v_pos", 3, GL_FLOAT, vertices);
+	fh_mdlc_attrib(c, "v_uv", 2, GL_FLOAT, texCoords);
 
 	if(!(s->ui = fh_mdl_create(win, c))) {
 		printf("Failed to finalize construction\n");
@@ -173,8 +177,10 @@ void load_ui(struct fh_window *win, struct stuff *s)
 
 void init_stuff(struct stuff *s, struct fh_window *parent, char *name, u32 w, u32 h)
 {
-
+	struct fh_shader *flat_shd;
 	struct fh_camera_info cam_info;
+
+	struct fh_flat *flat;
 
 	mat4_idt(s->unibuf.pos);
 	mat4_idt(s->unibuf.rot);
@@ -190,15 +196,14 @@ void init_stuff(struct stuff *s, struct fh_window *parent, char *name, u32 w, u3
 	s->window = fh_add_window(parent, name, w, h);
 
 	/* Create the UI shader */
-	fh_load_shader(s->window, "ui", "./res/shaders/ui.vert", "./res/shaders/ui.frag");
-	fh_load_shader(s->window, "model", "./res/shaders/model.vert", "./res/shaders/model.frag");
 	fh_load_texture(s->window, "red", "./res/images/red.png");
 	fh_load_texture(s->window, "brick", "./res/images/brick.png");
 	fh_load_texture(s->window, "unt", "./res/images/Untitled.png");
 
-
 	load_ui(s->window, s);
 	load_model(s->window, s);
+
+	s->flat = fh_create_flat("test", s->window, 0, 0, 800, 600);
 
 	/* Create a camera */
 	cam_info.area_of_view = 60;
@@ -218,7 +223,6 @@ int main(void) {
 
 
 	struct stuff one;
-	struct stuff two;
 
 
 	srand(time(NULL));
@@ -228,13 +232,11 @@ int main(void) {
 	
 
 	init_stuff(&one, NULL, "Hauptfenster", 800, 600);
-	init_stuff(&two, one.window, "Unterfenster", 400, 300);
 
 
 	while(fh_update()) {	
 		while(fh_pull_event(&evt)) {
 		}
-
 
 
 
@@ -260,42 +262,22 @@ int main(void) {
 		fh_cam_get_proj(one.cam, one.unibuf.proj);
 		fh_cam_get_view(one.cam, one.unibuf.view);
 
-		fh_mdl_set_uniform(one.ui, "camera", &one.camcom);
 		fh_mdl_set_uniform(one.mdl, "camera", &one.unibuf);
 
+
+
+
+
 		fh_mdl_render(one.mdl);
+
+
+
 		fh_mdl_render(one.ui);
 
+		fh_flat_render(one.flat);
+
+
 		fh_redraw_window(one.window);
-	
-		/* ==================================================== */	
-
-		two.x -= 0.01;
-		two.rot[0] -= M_PI / 200;
-		two.rot[1] -= M_PI / 100;
-		two.rot[2] -= M_PI / 50;
-
-		fh_activate_window(two.window);
-		fh_clear_window(two.window);
-
-		two.cam->pos[1] = two.x;
-
-		fh_cam_update_proj(two.cam);
-		fh_cam_update_view(two.cam);
-
-		mat4_rfagl(two.unibuf.rot, two.rot);
-
-		
-		fh_cam_get_proj(two.cam, two.unibuf.proj);
-		fh_cam_get_view(two.cam, two.unibuf.view);
-
-		fh_mdl_set_uniform(two.ui, "camera", &two.camcom);
-		fh_mdl_set_uniform(two.mdl, "camera", &two.unibuf);
-
-		fh_mdl_render(two.mdl);
-		fh_mdl_render(two.ui);
-
-		fh_redraw_window(two.window);
 
 		/* ==================================================== */
 	}
