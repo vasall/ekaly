@@ -4,16 +4,12 @@ layout(location=0) in vec3 v_pos;
 layout(location=1) in vec2 v_uv;
 layout(location=2) in vec3 v_nrm;
 
-layout(binding=0) uniform model {
+layout(binding=0) uniform UBO {
 	mat4 u_pos;
 	mat4 u_rot;
-};
-
-layout(binding=1) uniform camera {
 	mat4 u_view;
 	mat4 u_proj;
 };
-
 
 layout(location=0)out vec2 uv;
 layout(location=1)out vec3 nrm;

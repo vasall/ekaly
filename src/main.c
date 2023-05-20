@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -7,41 +8,22 @@
 #include "lib/amoloader/amoloader.h"
 #include "lib/mate/inc/mate.h"
 
+struct fh_model *load_model(struct fh_context *ctx);
+
 
 struct uniform_buffer {
 	mat4_t pos;
 	mat4_t rot;
+};
+
+struct camera_buffer {
 	mat4_t view;
 	mat4_t proj;
 };
 
-struct camera_compact {
-	mat4_t view;
-	mat4_t proj;
-};
 
 
-
-struct stuff {
-	struct fh_window *window;
-	struct fh_shader *shader;
-	struct fh_texture *texture;
-	struct fh_camera *cam;
-
-
-	struct uniform_buffer unibuf;
-	struct camera_compact camcom; 
-
-	vec3_t rot;
-	float x;
-
-	struct fh_model *mdl;
-	struct fh_model *ui;
-
-	struct fh_flat *flat;
-};
-
-void load_model(struct fh_window *win, struct stuff *s)
+struct fh_model *load_model(struct fh_context *ctx)
 {
 	FILE *fd;
 	struct amo_model *data;
@@ -55,8 +37,12 @@ void load_model(struct fh_window *win, struct stuff *s)
 	unsigned int *idx = NULL;
 
 	struct fh_model_c *c;
+	struct fh_model *mdl;
 
 	char *pth = "./res/models/cube.amo";
+
+	vec3_t ini_pos = {0, 0, 0};
+	vec3_t ini_rot = {0, 0, 0};
 
 
 	if(!(fd = fopen(pth, "r"))) {
@@ -72,34 +58,33 @@ void load_model(struct fh_window *win, struct stuff *s)
 	amo_getdata(data, &vtxnum, (void **)&vtx, (void **)&tex, (void **)&nrm,
 			NULL, NULL, &idxnum, &idx);
 
-
-	printf("model!\n");
-
-	if(!(c = fh_mdlc_begin("model", vtxnum, idxnum, idx))) {
+	if(!(c = fh_BeginModelConstr("model_a", vtxnum, idxnum, idx))) {
 		printf("Failed to begin construction\n");
 		goto err_free_buffers;
 	}
 
+	fh_ModelConstrShader(c, fh_GetShader(ctx, "model"));
+	fh_ModelConstrTexture(c, fh_GetTexture(ctx, "brick"));
 
-	fh_mdlc_shader(c, "model");
-	fh_mdlc_texture(c, "brick");
+	fh_ModelConstrAttrib(c, "v_pos", 3, GL_FLOAT, vtx);
+	fh_ModelConstrAttrib(c, "v_uv", 2, GL_FLOAT, tex);
+	fh_ModelConstrAttrib(c, "v_nrm", 3, GL_FLOAT, nrm);
 
-	fh_mdlc_attrib(c, "v_pos", 3, GL_FLOAT, vtx);
-	fh_mdlc_attrib(c, "v_uv", 2, GL_FLOAT, tex);
-	fh_mdlc_attrib(c, "v_nrm", 3, GL_FLOAT, nrm);
-
-	fh_mdlc_uniform(c, "camera", sizeof(struct uniform_buffer));
+	fh_ModelConstrUniform(c, "model", sizeof(struct uniform_buffer));
+	fh_ModelConstrUniform(c, "camera", sizeof(struct camera_buffer));
 
 
-	if(!(s->mdl = fh_mdl_create(win, c))) {
+	if(!(mdl = fh_EndModelConstr(c, ctx, ini_pos, ini_rot))) {
 		printf("Failed to finalize construction\n");
 		goto err_free_buffers;
 	}
 
 
+	fh_ModelConstrCleanup(c);
+
 	fclose(fd);
 
-	return;
+	return mdl;
 
 err_free_buffers:
 	fh_free(vtx);
@@ -113,179 +98,88 @@ err_close_fd:
 	fclose(fd);
 
 err_return:
-	return;
+	return NULL;
 }
 
 
-void load_ui(struct fh_window *win, struct stuff *s)
+
+int main(void)
 {
-	struct fh_model_c *c;
+	struct fh_window *win;
+	struct fh_context *ctx;
 
-	unsigned int vtxnum = 4;
-	unsigned int idxnum = 6;
+	struct fh_model *mdl;
 
-#if 0
-	float vertices[] = {
-		-1,  0,  -1,
-		-1,  0,   1,
-		 1,  0,   1,
-		 1,  0,  -1
-	};
-#else
-	float vertices[] = {
-		-1,  -1,   0,
-		-1,   1,   0,
-		 1,   1,   0,
-		 1,  -1,   0
-	};
-#endif
-
-	/* Texture coordinates (2 floats per vertex) */
-	float texCoords[] = {
-		0.0f, 0.0f,
-		0.0f, 1.0f,
-		1.0f, 1.0f,
-		1.0f, 0.0f
-	};
-
-	/* Indices (3 ints per triangle) */
-	unsigned int indices[] = {
-		0, 1, 2,
-		0, 2, 3
-	};
-
-	printf("ui!\n");
-
-	if(!(c = fh_mdlc_begin("ui", vtxnum, idxnum, indices))) {
-		printf("Failed to begin construction\n");
-		return;
-	}
-
-	fh_mdlc_shader(c, "ui");
-	fh_mdlc_texture(c, "unt");
-
-	fh_mdlc_attrib(c, "v_pos", 3, GL_FLOAT, vertices);
-	fh_mdlc_attrib(c, "v_uv", 2, GL_FLOAT, texCoords);
-
-	if(!(s->ui = fh_mdl_create(win, c))) {
-		printf("Failed to finalize construction\n");
-		return;
-	}
-}
-
-
-
-void init_stuff(struct stuff *s, struct fh_window *parent, char *name, u32 w, u32 h)
-{
-	struct fh_shader *flat_shd;
-	struct fh_camera_info cam_info;
-
-	struct fh_flat *flat;
-
-	mat4_idt(s->unibuf.pos);
-	mat4_idt(s->unibuf.rot);
-	mat4_idt(s->unibuf.view);
-	mat4_idt(s->unibuf.proj);
-
-	mat4_idt(s->camcom.view);
-	mat4_idt(s->camcom.proj);
-
-	vec3_clr(s->rot);
-
-
-	s->window = fh_add_window(parent, name, w, h);
-
-	/* Create the UI shader */
-	fh_load_texture(s->window, "red", "./res/images/red.png");
-	fh_load_texture(s->window, "brick", "./res/images/brick.png");
-	fh_load_texture(s->window, "unt", "./res/images/Untitled.png");
-
-	load_ui(s->window, s);
-	load_model(s->window, s);
-
-	s->flat = fh_create_flat("test", s->window, 0, 0, 800, 600);
-
-	/* Create a camera */
-	cam_info.area_of_view = 60;
-	cam_info.aspect_ratio = 800.0f / 600.0f;
-	cam_info.near = 0.0001;
-	cam_info.far = 1000;
-	s->cam = fh_create_camera(s->window, "main", cam_info);
-}
-
-
-
-
-
-int main(void) {
 	struct fh_event evt;
-	struct fh_element *ele;
 
+	struct uniform_buffer unibuf;
+	struct camera_buffer camview;
+	float x = 0;
 
-	struct stuff one;
+	struct fh_camera_info cam_info;
+	struct fh_camera *cam;
+
+	mat4_idt(unibuf.pos);
+	mat4_idt(unibuf.rot);
+	mat4_idt(camview.view);
+	mat4_idt(camview.proj);
 
 
 	srand(time(NULL));
 
+	/* Initialize the FH-framework */
 	if(fh_init() < 0)
 		goto err_return;
-	
 
-	init_stuff(&one, NULL, "Hauptfenster", 800, 600);
+	/* Create the window and context */
+	win = fh_CreateWindow(NULL, "main", 800, 600);
+	ctx = fh_CreateContext(win);
+
+	/* Load resources */
+	fh_LoadTexture(ctx, "red", "./res/images/red.png");
+	fh_LoadTexture(ctx, "brick", "./res/images/brick.png");
+	fh_LoadTexture(ctx, "unt", "./res/images/Untitled.png");
+
+	/* Load and create the model */
+	mdl = load_model(ctx);
+
+	/* Create a camera */
+	cam_info.area_of_view = 60;
+	cam_info.aspect_ratio = 100.0f / 100.0f;
+	cam_info.near = 0.01;
+	cam_info.far = 1000;
+	cam = fh_CreateCamera(ctx, "main", cam_info);
 
 
 	while(fh_update()) {	
 		while(fh_pull_event(&evt)) {
 		}
-
-
-
-		/* ==================================================== */
-
-		one.x -= 0.01;
-		one.rot[0] += M_PI / 200;
-		one.rot[1] += M_PI / 100;
-		one.rot[2] += M_PI / 50;
-
-		fh_activate_window(one.window);
-		fh_clear_window(one.window);
-
-
-		one.cam->pos[1] = one.x;
-
-		fh_cam_update_proj(one.cam);
-		fh_cam_update_view(one.cam);
-
-		mat4_rfagl(one.unibuf.rot, one.rot);
-
 		
-		fh_cam_get_proj(one.cam, one.unibuf.proj);
-		fh_cam_get_view(one.cam, one.unibuf.view);
-
-		fh_mdl_set_uniform(one.mdl, "camera", &one.unibuf);
-
-
+		glViewport(200, 300, 100, 100);
+		glEnable(GL_SCISSOR_TEST);
+		glScissor(200, 200, 800, 600);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
+		x += 0.01;
+		mat4_idt(unibuf.pos);
+		mat4_pfpos_s(unibuf.pos, 0, x, 0);
 
-		fh_mdl_render(one.mdl);
+		fh_GetViewMat(cam, camview.view);
+		fh_GetProjectionMat(cam, camview.proj);
 
+		fh_SetModelUniform(mdl, "model", &unibuf);
+		fh_SetModelUniform(mdl, "camera", &camview);
+		fh_RenderModel(mdl);	
 
-
-		fh_mdl_render(one.ui);
-
-		fh_flat_render(one.flat);
-
-
-		fh_redraw_window(one.window);
-
-		/* ==================================================== */
+		fh_redraw_window(win);
 	}
 
-err_cleanup:
-	fh_quit();
+
+	fh_DestroyContext(ctx);
+
+	return 0;
 
 err_return:
-	return 0;
+	return -1;
 }
-
