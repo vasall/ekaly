@@ -139,9 +139,8 @@ int main(void)
 
 	/* Create the window and context */
 	if(!(win = fh_CreateWindow(NULL, "main", 800, 600))) goto err_quit;
-	ctx = win->context;
-	doc = win->document;
-
+	ctx = fh_GetContext(win);
+	doc = fh_GetDocument(win);
 
 	/* Load resources */
 	fh_LoadTexture(win->context, "red", "./res/images/red.png");
@@ -149,7 +148,7 @@ int main(void)
 	fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
 
 	/* Create the canvas */
-	canvas = fh_AddElement(doc, fh_GetElement(doc, "body"), "canvas", FH_CANVAS);
+	canvas = fh_AddElement(doc, fh_GetElement(doc, "body"), "canvas", FH_VIEW, NULL);
 	view = fh_GetView(canvas);
 
 	/* Get the camera */
@@ -160,7 +159,7 @@ int main(void)
 
 	fh_ViewAddModel(view, cube);
 
-	x = 0;
+	x = 5;
 
 	while(fh_Update()) {	
 		while(fh_pull_event(&evt)) {
