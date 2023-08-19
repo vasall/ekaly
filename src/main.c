@@ -4,132 +4,120 @@
 #include <time.h>
 #include "SDL2/SDL.h"
 
+#include "lib/alarm/inc/alarm.h"
 #include "lib/freihand/inc/freihand.h"
 #include "lib/amoloader/amoloader.h"
 #include "lib/mate/inc/mate.h"
 
-
-struct model_m {
-	mat4_t pos;
-	mat4_t rot;
-};
-
-struct camera_m {
-	mat4_t view;
-	mat4_t proj;
-};
+#define VIEW 0
 
 
-
-static struct fh_model *loadCube(struct fh_context *ctx)
+static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 {
-	struct fh_model *mdl;
+	u8 i;
+	struct fh_element *ele;
+	struct fh_element *container;
+	struct fh_element *parent;
 
-	FILE *fd;
-	struct amo_model *data;
+	char name[15];
+	char text[128];
 
-	int vtxnum;
-	float *vtx = NULL;
-	float *tex = NULL;
-	float *nrm = NULL;
+	/*
+	 * Create a container element.
+	 */
+	ele = fh_AddElement(doc, par, "container", FH_BLOCK, NULL);
 
-	int idxnum;
-	unsigned int *idx = NULL;
+	fh_ModifyElementStyle(ele, "infill_color: #ff0000;");
+	fh_ModifyElementStyle(ele, "vsize: 100%; hsize: 90%;");
+	fh_ModifyElementStyle(ele, "spacing_right: 5%;");
+	fh_ModifyElementStyle(ele, "spacing_left: 5%;");
 
-	struct fh_model_c *c;
+	fh_ModifyElementStyle(ele, "padding_top:5%; padding_right: 5%;");
+	fh_ModifyElementStyle(ele, "padding_bottom: 5%; padding_left: 5%;");
 
-	char *pth = "./res/models/cube.amo";
+	container = ele;
+	parent = container;
 
-	vec3_t ini_pos = {0, 0, 0};
-	vec3_t ini_rot = {0, 0, 0};
+	for(i = 0; i < num; i++) {
+		name[0] = i + 65;
+		name[1] = 0;
 
+		ele = fh_AddElement(doc, container, name, FH_BLOCK, NULL);
 
-	if(!(fd = fopen(pth, "r"))) {
-		printf("Failed to open file\n");
-		goto err_return;
-	}
+		fh_ModifyElementStyle(ele, "vsize: 40%; hsize: 40%;");
+		fh_ModifyElementStyle(ele, "spacing_top: 10%; spacing_left: 5%;");
 
-	if(!(data = amo_load(fd))) {
-		printf("Failed to load model data\n");
-		goto err_close_fd;
-	}
+		sprintf(text, "infill_color: #00%02x00;", (((i+3) * 20) % 255));
+		fh_ModifyElementStyle(ele, text);
 
-	amo_getdata(data, &vtxnum, (void **)&vtx, (void **)&tex, (void **)&nrm,
-			NULL, NULL, &idxnum, &idx);
-
-
-	printf("model!\n");
-
-	if(!(c = fh_BeginModelConstr("model_a", vtxnum, idxnum, idx))) {
-		printf("Failed to begin construction\n");
-		goto err_free_buffers;
+		parent = ele;
 	}
 
 
-	fh_ModelConstrShader(c, fh_GetShader(ctx, "model"));
-	fh_ModelConstrTexture(c, fh_GetTexture(ctx, "red"));
+	for(i = 0; i < num; i++) {
+		name[0] = (i+num) + 65;
+		name[1] = 0;
 
-	fh_ModelConstrAttrib(c, "v_pos", 3, GL_FLOAT, vtx);
-	fh_ModelConstrAttrib(c, "v_uv", 2, GL_FLOAT, tex);
-	fh_ModelConstrAttrib(c, "v_nrm", 3, GL_FLOAT, nrm);
+		ele = fh_AddElement(doc, parent, name, FH_BLOCK, NULL);
 
-	fh_ModelConstrUniform(c, "model", sizeof(struct model_m));
-	fh_ModelConstrUniform(c, "camera", sizeof(struct camera_m));
+		fh_ModifyElementStyle(ele, "vsize: 80%; hsize: 80%;");
+		fh_ModifyElementStyle(ele, "spacing_top: 10%; spacing_left:10%;");
 
+		sprintf(text, "infill_color: #0000%02x;", (((i+3) * 20) % 255));
+		fh_ModifyElementStyle(ele, text);
 
-	if(!(mdl = fh_EndModelConstr(c, ctx, ini_pos, ini_rot))) {
-		printf("Failed to finalize construction\n");
-		goto err_free_buffers;
+		parent = ele;
+	}
+
+	fh_UpdateDocument(doc);
+	fh_RenderDocumentUI(doc);
+}
+
+static struct fh_window *add_window(void)
+{
+	struct fh_window *win;
+	struct fh_window *main;
+	static char *names[5] = {"main", "eins", "zwei", "drei", "vier"};
+	int i;
+
+	/* Create the window and context */
+	if(!(win = fh_CreateWindow(NULL, names[0], 800, 600)))
+		return NULL;
+
+	/* Load resources */
+	fh_LoadTexture(win->context, "red", "./res/images/red.png");
+	fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
+	fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
+
+	add_blocks(win->document, fh_GetElement(win->document, "body"), 5);
+
+	main = win;
+
+	for(i = 0; i < 0; i++) {
+		/* Create the window and context */
+		if(!(win = fh_CreateWindow(win, names[i + 1], 800, 600)))
+			return NULL;
+
+		/* Load resources */
+		fh_LoadTexture(win->context, "red", "./res/images/red.png");
+		fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
+		fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
+
+		add_blocks(win->document, fh_GetElement(win->document, "body"), 5);
+
 	}
 
 
-	fh_ModelConstrCleanup(c);
-
-	fclose(fd);
-
-	return mdl;
-
-err_free_buffers:
-	fh_free(vtx);
-	fh_free(tex);
-	fh_free(nrm);
-	fh_free(idx);
-
-	amo_destroy(data);
-
-err_close_fd:
-	fclose(fd);
-
-err_return:
-	return NULL;
+	return main;
 }
 
 
 int main(void)
 {
-	struct fh_window *win;
-	struct fh_context *ctx;
-	struct fh_document *doc;
+	struct fh_window *mainwin;
+	int i;
 
 	struct fh_event evt;
-
-	struct fh_element *canvas;
-	struct fh_view *view;
-
-	struct fh_camera *camera;
-	struct fh_model *cube;
-
-	struct model_m model_mat;
-	struct camera_m camera_mat;
-
-	float x;
-
-	mat4_idt(model_mat.pos);
-	mat4_idt(model_mat.rot);
-
-	mat4_idt(camera_mat.view);
-	mat4_idt(camera_mat.proj);
-
 
 	srand(time(NULL));
 
@@ -137,53 +125,18 @@ int main(void)
 	if(fh_Init() < 0)
 		goto err_return;
 
-	/* Create the window and context */
-	if(!(win = fh_CreateWindow(NULL, "main", 800, 600))) goto err_quit;
-	ctx = fh_GetContext(win);
-	doc = fh_GetDocument(win);
 
-	/* Load resources */
-	fh_LoadTexture(win->context, "red", "./res/images/red.png");
-	fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
-	fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
-
-	/* Create the canvas */
-	canvas = fh_AddElement(doc, fh_GetElement(doc, "body"), "canvas", FH_VIEW, NULL);
-	view = fh_GetView(canvas);
-
-	/* Get the camera */
-	camera = fh_GetViewCamera(view);
-
-	/* Create the cube */
-	cube = loadCube(ctx);
-
-	fh_ViewAddModel(view, cube);
-
-	x = 5;
-
-	while(fh_Update()) {	
-		while(fh_pull_event(&evt)) {
-		}
-
-		x += 0.01;
+	mainwin = add_window();
 
 
-		mat4_pfpos_s(model_mat.pos, 0, x, 0);
+	fh_DumpWindowTree();
 
+	while(fh_Update()) {
 
-		fh_GetViewMat(camera, camera_mat.view);
-		fh_GetProjectionMat(camera, camera_mat.proj);
-
-	
-
-		fh_SetModelUniform(cube, "model", &model_mat);
-		fh_SetModelUniform(cube, "camera", &camera_mat);
-		
-
-		fh_RedrawWindow(win);
+		fh_RedrawAllWindows();
 	}
 
-err_quit:
+	printf("Quitting...\n");
 	fh_Quit();
 
 err_return:
