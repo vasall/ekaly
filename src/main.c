@@ -112,6 +112,14 @@ static struct fh_window *add_window(void)
 }
 
 
+s8 test_callback(struct fh_event *evt, void *data)
+{
+	printf(">>>>>>>< HELLO WORLD!!!\n");
+	return 1;
+}
+
+
+
 int main(void)
 {
 	struct fh_window *mainwin;
@@ -128,13 +136,17 @@ int main(void)
 
 	mainwin = add_window();
 
-
 	fh_DumpWindowTree();
 
-	while(fh_Update()) {
+	fh_BindEventListener(
+			fh_GetElement(mainwin->document, "D")->event_handler, 
+			FH_EVT_MOUSEBUTTONDOWN,
+			"test",
+			&test_callback,
+			NULL
+			);
 
-		fh_RedrawAllWindows();
-	}
+	while(fh_Update());
 
 	printf("Quitting...\n");
 	fh_Quit();
