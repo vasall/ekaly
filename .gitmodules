@@ -1,0 +1,15 @@
+[submodule "lib/amoloader"]
+	path = lib/amoloader
+	url = git@github.com:vasall/amoloader.git
+[submodule "lib/alarm"]
+	path = lib/alarm
+	url = git@github.com:vasall/alarm.git
+[submodule "lib/freihand"]
+	path = lib/freihand
+	url = git@github.com:vasall/freihand.git
+[submodule "lib/gentils"]
+	path = lib/gentils
+	url = git@github.com:vasall/gentils.git
+[submodule "lib/mate"]
+	path = lib/mate
+	url = git@github.com:vasall/mate.git
