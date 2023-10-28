@@ -4,13 +4,14 @@
 #include <time.h>
 #include "SDL2/SDL.h"
 
-#include "lib/alarm/inc/alarm.h"
+#include "lib/gentils/inc/gentils.h"
 #include "lib/freihand/inc/freihand.h"
 #include "lib/amoloader/amoloader.h"
 #include "lib/mate/inc/mate.h"
 
 #define VIEW 0
 
+#if 0
 
 static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 {
@@ -154,3 +155,14 @@ int main(void)
 err_return:
 	return 0;
 }
+
+#else
+
+int main(void)
+{
+	ALARM(ALARM_ERR, "Hello world!\n");
+	return 0;
+}
+
+
+#endif
