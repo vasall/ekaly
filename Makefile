@@ -26,6 +26,7 @@ CC         := gcc
 ERRFLAGS   := -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition
 # Compiling flags here
 CFLAGS     := -g -O0 -ansi -std=c89 -pedantic -I. -I./inc/ -I./$(LIB_PTH)/
+CFLAGS 	   += $(foreach dir, $(LIB_DIRS), -I$(dir)inc/)
 SDL_CFLAGS := $(shell pkg-config --cflags sdl2 SDL2_ttf SDL2_image)
 override CFLAGS += $(SDL_CFLAGS)
 

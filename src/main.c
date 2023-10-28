@@ -11,7 +11,7 @@
 
 #define VIEW 0
 
-#if 0
+#if 1
 
 static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 {
