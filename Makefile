@@ -33,7 +33,7 @@ override CFLAGS += $(SDL_CFLAGS)
 LINKER     := gcc
 # Set libararies (FIXME: switch the variables)
 LIBS       := $(shell find $(MKFILE_DIR)$(LIB_PTH)/ -type f -name "*.a")
-STAT_LIBS  := -lm -lgmp -lGL -lGLU -lvulkan
+STAT_LIBS  := -lm -lGL -lGLU -lvulkan
 override LIBS += $(STAT_LIBS)
 # Linking flags here
 LFLAGS     := -Wall -I. $(LIBS)
@@ -55,6 +55,8 @@ SVSHADERS  := $(VSHADERS:%.vert=%.vert.spv)
 SFSHADERS  := $(FSHADERS:%.frag=%.frag.spv)
 
 rm         := rm -f
+
+$(info $$LIBS is [${LIBS}])
 
 $(BINDIR)/$(TARGET): $(OBJECTS) $(SVSHADERS) $(SFSHADERS)
 	@$(LINKER) $(OBJECTS) $(LFLAGS) -o $@
