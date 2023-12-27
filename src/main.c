@@ -5,14 +5,11 @@
 #include "SDL2/SDL.h"
 
 #include "lib/gentils/inc/gentils.h"
-#include "lib/freihand/inc/freihand.h"
+#include "lib/freihand/freihand.h"
 #include "lib/amoloader/amoloader.h"
 #include "lib/mate/inc/mate.h"
 
-#define VIEW 0
-
 #if 1
-
 static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 {
 	u8 i;
@@ -54,22 +51,6 @@ static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 		parent = ele;
 	}
 
-
-	for(i = 0; i < num; i++) {
-		name[0] = (i+num) + 65;
-		name[1] = 0;
-
-		ele = fh_AddElement(doc, parent, name, FH_BLOCK, NULL);
-
-		fh_ModifyElementStyle(ele, "vsize: 80%; hsize: 80%;");
-		fh_ModifyElementStyle(ele, "spacing_top: 10%; spacing_left:10%;");
-
-		sprintf(text, "infill_color: #0000%02x;", (((i+3) * 20) % 255));
-		fh_ModifyElementStyle(ele, text);
-
-		parent = ele;
-	}
-
 	fh_UpdateDocument(doc);
 	fh_RenderDocumentUI(doc);
 }
@@ -90,24 +71,9 @@ static struct fh_window *add_window(void)
 	fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
 	fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
 
-	add_blocks(win->document, fh_GetElement(win->document, "body"), 5);
+	add_blocks(win->document, fh_GetElement(win->document, "body"), 1);
 
 	main = win;
-
-	for(i = 0; i < 0; i++) {
-		/* Create the window and context */
-		if(!(win = fh_CreateWindow(win, names[i + 1], 800, 600)))
-			return NULL;
-
-		/* Load resources */
-		fh_LoadTexture(win->context, "red", "./res/images/red.png");
-		fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
-		fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
-
-		add_blocks(win->document, fh_GetElement(win->document, "body"), 5);
-
-	}
-
 
 	return main;
 }
@@ -139,6 +105,7 @@ int main(void)
 
 	fh_DumpWindowTree();
 
+#if 0
 	fh_BindEventListener(
 			fh_GetElement(mainwin->document, "D")->event_handler, 
 			FH_EVT_MOUSEBUTTONDOWN,
@@ -146,6 +113,7 @@ int main(void)
 			&test_callback,
 			NULL
 			);
+#endif
 
 	while(fh_Update());
 
@@ -158,11 +126,97 @@ err_return:
 
 #else
 
+#define WIN_W	800
+#define WIN_H	600
+
 int main(void)
 {
-	ALARM(ALARM_ERR, "Hello world!\n");
+	struct fh_window *window;
+	struct fh_shader shd;
+	s32 gl_context;
+
+	struct fh_vertex_attrib v_attributes[] = {
+		{2, GL_INT}					/* position */
+	};
+
+	struct fh_batch *batch;
+
+	s8 running = 1;
+	s32 i;
+
+	int x1 = 100;
+	int y1 = 100;
+	int x2 = 300;
+	int y2 = 200;
+
+	struct tempStruct {
+		int x;
+		int y;
+	} vdata;
+
+	unsigned int index[4];
+
+	SDL_Event event;
+
+	unsigned int progam;
+
+
+	/* Initialize subsystems */
+	fh_Init();
+
+	if(!(window = fh_CreateWindow(NULL, "main", WIN_W, WIN_H))) {
+		printf("Failed to create window!!\n");
+		return -1;
+	}
+
+	/*
+	 * Create the batch-renderer.
+	 */
+	batch = fh_batch_create(
+			1,		/* Number of vertex attributes */
+			v_attributes,	/* List of all vertex attributes */
+			6000,		/* Vertex capacity */
+			6000,		/* Index capacity */
+			0,		/* Number of uniform buffers */
+			NULL		/* List of all uniforms */
+	);
+
+
+	while(running) {
+		while(SDL_PollEvent(&event)) {
+			if(event.type == SDL_QUIT) {
+				running = 0;
+			}
+		}
+
+		vdata = (struct tempStruct){x1, y1};
+		index[0] = fh_batch_push_vertex(batch, (void *)&vdata);
+		vdata = (struct tempStruct){x2, y1};
+		index[1] = fh_batch_push_vertex(batch, (void *)&vdata);
+		vdata = (struct tempStruct){x2, y2};
+		index[2] = fh_batch_push_vertex(batch, (void *)&vdata);
+		vdata = (struct tempStruct){x1, y2};
+		index[3] = fh_batch_push_vertex(batch, (void *)&vdata);
+
+		fh_batch_push_index(batch, index[0]);
+		fh_batch_push_index(batch, index[2]);
+		fh_batch_push_index(batch, index[3]);
+
+		fh_batch_push_index(batch, index[0]);
+		fh_batch_push_index(batch, index[1]);
+		fh_batch_push_index(batch, index[2]);
+
+		/* Clear the window */
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		fh_batch_flush(batch);
+
+		/* Swap buffer */
+		SDL_GL_SwapWindow(window->handle);
+
+	}
+
 	return 0;
 }
-
 
 #endif

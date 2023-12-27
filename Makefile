@@ -21,19 +21,19 @@ LIB_PTH    := lib
 LIB_DIRS   := $(sort $(dir $(wildcard $(MKFILE_DIR)$(LIB_PTH)/*/)))
 
 # The compiler to use
-CC         := gcc
+CC         := clang
 # Error flags for compiling
 ERRFLAGS   := -Wall -Wextra -Wmissing-prototypes -Wstrict-prototypes -Wold-style-definition
 # Compiling flags here
-CFLAGS     := -g -O0 -ansi -std=c89 -pedantic -I. -I./inc/ -I./$(LIB_PTH)/
+CFLAGS     := -g -O0 -ansi -std=c89 -pedantic -I. -I./inc/ -I./$(LIB_PTH)/ -I./$(LIB_PTH)/freihand/source/
 CFLAGS 	   += $(foreach dir, $(LIB_DIRS), -I$(dir)inc/)
 SDL_CFLAGS := $(shell pkg-config --cflags sdl2 SDL2_ttf SDL2_image)
 override CFLAGS += $(SDL_CFLAGS)
 
 # The linker to use
-LINKER     := gcc
+LINKER     := clang
 # Set libararies (FIXME: switch the variables)
-LIBS       := $(shell find $(MKFILE_DIR)$(LIB_PTH)/ -type f -name "*.a")
+LIBS       := /home/skratpa/Projekte/ekaly/lib/amoloader/libamo.a /home/skratpa/Projekte/ekaly/lib/freihand/lfreihand.a /home/skratpa/Projekte/ekaly/lib/alarm/libalarm.a /home/skratpa/Projekte/ekaly/lib/mate/libmate.a
 STAT_LIBS  := -lm -lGL -lGLU -lvulkan
 override LIBS += $(STAT_LIBS)
 # Linking flags here
