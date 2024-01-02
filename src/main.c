@@ -1,10 +1,8 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include "SDL2/SDL.h"
 
-#include "lib/gentils/inc/gentils.h"
 #include "lib/freihand/freihand.h"
 #include "lib/amoloader/amoloader.h"
 #include "lib/mate/inc/mate.h"
@@ -32,6 +30,7 @@ static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 
 	fh_ModifyElementStyle(ele, "padding_top:5%; padding_right: 5%;");
 	fh_ModifyElementStyle(ele, "padding_bottom: 5%; padding_left: 5%;");
+	fh_ModifyElementStyle(ele, "border_width: 3; border_color: #000000;");
 
 	container = ele;
 	parent = container;
@@ -42,8 +41,10 @@ static void add_blocks(struct fh_document *doc, struct fh_element *par, u8 num)
 
 		ele = fh_AddElement(doc, container, name, FH_BLOCK, NULL);
 
-		fh_ModifyElementStyle(ele, "vsize: 10%; hsize: 40%;");
-		fh_ModifyElementStyle(ele, "spacing_top: 10%; spacing_left: 5%;");
+		fh_ModifyElementStyle(ele, "vsize: 20%; hsize: 10%;");
+		fh_ModifyElementStyle(ele, "spacing_top: 10%;spacing_left: 22%;");
+		fh_ModifyElementStyle(ele, "radius_top_left: 15;");
+		fh_ModifyElementStyle(ele, "border_width: 3; border_color: #000000;");
 
 		sprintf(text, "infill_color: #00%02x00;", (((i+3) * 20) % 255));
 		fh_ModifyElementStyle(ele, text);
@@ -71,7 +72,7 @@ static struct fh_window *add_window(void)
 	fh_LoadTexture(win->context, "brick", "./res/images/brick.png");
 	fh_LoadTexture(win->context, "unt", "./res/images/Untitled.png");
 
-	add_blocks(win->document, fh_GetElement(win->document, "body"), 3);
+	add_blocks(win->document, fh_GetElement(win->document, "body"), 7);
 
 	main = win;
 

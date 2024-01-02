@@ -33,7 +33,7 @@ override CFLAGS += $(SDL_CFLAGS)
 # The linker to use
 LINKER     := clang
 # Set libararies (FIXME: switch the variables)
-LIBS       := /home/skratpa/Projekte/ekaly/lib/amoloader/libamo.a /home/skratpa/Projekte/ekaly/lib/freihand/lfreihand.a /home/skratpa/Projekte/ekaly/lib/alarm/libalarm.a /home/skratpa/Projekte/ekaly/lib/mate/libmate.a
+LIBS       := /home/skratpa/Projekte/ekaly/lib/amoloader/libamo.a /home/skratpa/Projekte/ekaly/lib/freihand/lfreihand.a /home/skratpa/Projekte/ekaly/lib/mate/libmate.a
 STAT_LIBS  := -lm -lGL -lGLU -lvulkan
 override LIBS += $(STAT_LIBS)
 # Linking flags here

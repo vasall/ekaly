@@ -1,0 +1,20 @@
+ERROR | source/system/src/file.c:74 Failed to open file
+ERROR | source/system/src/file.c:106 Failed to load file
+ERROR | source/graphic/resources/src/shader.c:248 Failed to load the vertex shader file
+ERROR | source/graphic/resources/src/shader.c:276 Failed to load new shader
+ERROR | source/graphic/resources/src/shader.c:418 Failed to load shader
+ERROR | source/document/src/context.c:107 Failed to load predefined resources
+ERROR | source/document/src/context.c:178 Failed to create context
+ERROR | source/window/src/window.c:63 Failed to create rendering context
+ERROR | source/window/src/window.c:92 Failed to create window
+ERROR | source/window/src/window.c:415 Failed to create add new window
+ERROR | source/system/src/file.c:74 Failed to open file
+ERROR | source/system/src/file.c:106 Failed to load file
+ERROR | source/graphic/resources/src/shader.c:248 Failed to load the vertex shader file
+ERROR | source/graphic/resources/src/shader.c:276 Failed to load new shader
+ERROR | source/graphic/resources/src/shader.c:418 Failed to load shader
+ERROR | source/document/src/context.c:107 Failed to load predefined resources
+ERROR | source/document/src/context.c:178 Failed to create context
+ERROR | source/window/src/window.c:63 Failed to create rendering context
+ERROR | source/window/src/window.c:92 Failed to create window
+ERROR | source/window/src/window.c:415 Failed to create add new window
